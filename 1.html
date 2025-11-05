@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام الحضور والانصراف - سوشيال نيست</title>
+    <!-- إضافة مكتبة jspdf و autotable -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+    <!-- إضافة خط Cairo من Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700&display=swap" rel="stylesheet">
+    <link rel="icon" href="1.png" type="image/png">
+    <link rel="stylesheet" href="1.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header floating">
+            <div class="logo">🏢 سوشيال نيست</div>
+            <div class="subtitle">نظام إدارة الحضور والانصراف</div>
+        </div>
+
+        <div class="main-card">
+            <div class="login-section">
+
+
+                <h2 class="section-title no-underline">تسجيل الحضور والانصراف Social Nest</h2>             
+
+                <div class="form-group">
+                    <label for="employeeId">رقم الموظف</label>
+                    <input type="text" id="employeeId" placeholder="أدخل رقم الموظف">
+                </div>
+                
+                <div class="form-group">
+                    <label for="employeeName">اسم الموظف</label>
+                    <input type="text" id="employeeName" placeholder="أدخل اسم الموظف">
+                </div>
+                
+                <div class="form-group">
+                    <label for="department">القسم</label>
+                    <select id="department">
+                        <option value="">اختر القسم</option>
+                        <option value="ماركتير">ماركتير</option>
+                        <option value="مانجر">مانجر</option>
+                        <option value="بيزنس ديفلبر">بيزنس ديفلبر</option>
+                        <option value="مونتير / ديفولبر">مونتير / ديفولبر</option>
+                        <option value="ديزاينر">ديزاينر</option>
+                        <option value="مودريشن">مودريشن</option>
+                        <option value="سيلز">سيلز</option>
+                    </select>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-checkin" onclick="checkIn()">
+                        ✅ تسجيل الحضور
+                    </button>
+                    <button class="btn btn-checkout" onclick="checkOut()">
+                        🚪 تسجيل الانصراف
+                    </button>
+                    <button class="btn btn-admin" onclick="showAdminModal()">
+                        🔐 المدير
+                    </button>
+                </div>
+
+                <div id="message" class="message"></div>
+                <div id="statusDisplay" class="status-display"></div>
+            </div>
+        </div>
+
+        <!-- Admin Modal -->
+        <div id="adminModal" class="modal">
+            <div class="modal-content">
+                <h2>تسجيل دخول المدير</h2>
+                <input type="password" id="adminPassword" placeholder="متحاولش يا اهطل😒😒">
+                <button class="btn btn-admin" onclick="validateAdmin()">تأكيد</button>
+                <button class="btn btn-cancel" onclick="closeAdminModal()">إلغاء</button>
+            </div>
+        </div>
+
+        <!-- Admin Panel -->
+        <div id="adminPanel" class="admin-panel">
+            <h2 class="section-title">لوحة تحكم المدير</h2>
+            <div class="admin-actions">
+                <button class="btn btn-admin" onclick="downloadPDF()">📄 تنزيل PDF</button>
+                <button class="btn btn-checkout" onclick="deleteAllRecords()">🗑️ حذف الكل</button>
+            </div>
+            <div class="records-section">
+                <h2 class="section-title">سجل الحضور التفصيلي</h2>
+                <div id="date-info" class="date-info"></div>
+                
+                <div class="filter-controls">
+                    <div class="filter-group">
+                        <label for="weekFilter">الأسبوع:</label>
+                        <select id="weekFilter" onchange="filterRecords()">
+                            <option value="">جميع الأسابيع</option>
+                            <option value="current">الأسبوع الحالي</option>
+                            <option value="last">الأسبوع الماضي</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="departmentFilter">القسم:</label>
+                        <select id="departmentFilter" onchange="filterRecords()">
+                            <option value="">جميع الأقسام</option>
+                            <option value="ماركتير">ماركتير</option>
+                            <option value="مانجر">مانجر</option>
+                            <option value="بيزنس ديفلبر">بيزنس ديفلبر</option>
+                            <option value="مونتير / ديفولبر">مونتير / ديفولبر</option>
+                            <option value="ديزاينر">ديزاينر</option>
+                            <option value="مودريشن">مودريشن</option>
+                            <option value="سيلز">سيلز</option>
+                        </select>
+                    </div>
+                </div>
+
+                <table class="records-table">
+                    <thead>
+                        <tr>
+                            <th>رقم الموظف</th>
+                            <th>اسم الموظف</th>
+                            <th>القسم</th>
+                            <th>التاريخ</th>
+                            <th>اليوم</th>
+                            <th>وقت الحضور</th>
+                            <th>وقت الانصراف</th>
+                            <th>ساعات العمل</th>
+                            <th>حالة الحضور</th>
+                            <th>ملاحظات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminRecordsTable">
+                    </tbody>
+                </table>
+
+                <div class="summary-stats">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalEmployees">0</div>
+                        <div class="stat-label">إجمالي الموظفين</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="presentToday">0</div>
+                        <div class="stat-label">حاضر اليوم</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="completedToday">0</div>
+                        <div class="stat-label">مكتمل اليوم</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="absentToday">0</div>
+                        <div class="stat-label">غائب اليوم</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="1.js"></script>
+</body>
+</html>
